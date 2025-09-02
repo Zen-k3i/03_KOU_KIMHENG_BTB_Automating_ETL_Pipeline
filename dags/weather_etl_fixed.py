@@ -117,17 +117,18 @@ with DAG(
             "Minimum Temp (C)", "Maximum Temp (C)", "Pressure", "Humidity",
             "Wind Speed", "Time of Record", "Sunrise (Local Time)", "Sunset (Local Time)"
         ])
-        local_file = f"/tmp/weather_data_phnom_penh_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        local_file = f"/tmp/weather_data_phnom_penh_{timestamp}.csv"
         df.to_csv(local_file, index=False)
 
         gcs = GCSHook(gcp_conn_id="google_cloud_default")
         gcs.upload(
             bucket_name=GCS_BUCKET_NAME,
-            object_name=GCS_OBJECT_NAME,
+            object_name=f"{GCS_OBJECT_NAME}-{timestamp}",
             filename=local_file,
             mime_type="text/csv"
         )
-        print(f"Uploaded {local_file} to gs://{GCS_BUCKET_NAME}/{GCS_OBJECT_NAME}")
+        print(f"Uploaded {local_file} to gs://{GCS_BUCKET_NAME}/{GCS_OBJECT_NAME}-{timestamp}")
 
     load_data = PythonOperator(
         task_id="load_data",
